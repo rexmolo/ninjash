@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "ninjash:"
+echo
+for f in ~/.local/bin/*; do
+  name=$(basename "$f")
+  # Get the first comment line from each script
+  desc=$(grep -m 1 '^#' "$f" | sed 's/^# *//')
+  printf "%-15s - %s\n" "$name" "$desc"
+done
+

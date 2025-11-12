@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# kill-ports.sh
+# macOS: check if given ports are occupied and optionally kill the process using them.
+# Usage:
+#   ./kill-ports.sh 3000 3001 3002
+#   ./kill-ports.sh         # defaults to 3000-3003
+
+set -euo pipefail
+
+# default ports if none supplied
+if [ $# -eq 0 ]; then
+  PORTS=(3000 3001 3002 3003)
+else
+  PORTS=("$@")
+fi
+
+echo "Checking ports: ${PORTS[*]}"
+echo
+
+for port in "${PORTS[@]}"; do
+  # lsof output line contains PID and COMMAND for the process listening on given TCP port
+  # -nP disables name resolution for speed, -sTCP:LISTEN shows listening sockets only
+  info=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)
+
+  if [ -z "$info" ]; then
+    echo "Port $port — free"
+    continue
+  fi
+
+  # Skip header line and take the first matching process line
+  proc_line=$(echo "$info" | sed -n '2p' || true)
+
+  if [ -z "$proc_line" ]; then
+    echo "Port $port — occupied (couldn't parse process info)"
+    echo "$info"
+    continue
+  fi
+
+  # parse fields: COMMAND PID USER ...
+  # lsof columns are space-separated but COMMAND may not contain spaces
+  # Use awk to extract command and pid
+  cmd=$(echo "$proc_line" | awk '{print $1}')
+  pid=$(echo "$proc_line" | awk '{print $2}')
+  user=$(echo "$proc_line" | awk '{print $3}')
+
+  echo "Port $port — in use"
+  echo "  PID: $pid"
+  echo "  Command: $cmd"
+  echo "  User: $user"
+  echo
+
+  # Ask user whether to kill it
+  while true; do
+    read -r -p "Kill PID $pid (command: $cmd) on port $port? [y/N]: " answer
+    case "$answer" in
+      [Yy]* )
+        # try graceful kill first
+        echo "Sending SIGTERM to $pid..."
+        kill "$pid" 2>/dev/null || {
+          echo "Failed to send SIGTERM (maybe insufficient permissions). Trying sudo..."
+          sudo kill "$pid" || true
+        }
+
+        # wait up to 5 seconds for process to exit
+        for i in 1 2 3 4 5; do
+          if kill -0 "$pid" 2>/dev/null; then
+            sleep 1
+          else
+            break
+          fi
+        done
+
+        # if still running, send SIGKILL
+        if kill -0 "$pid" 2>/dev/null; then
+          echo "Process $pid did not exit; sending SIGKILL..."
+          sudo kill -9 "$pid" 2>/dev/null || kill -9 "$pid" 2>/dev/null || true
+        fi
+
+        # final check
+        if kill -0 "$pid" 2>/dev/null; then
+          echo "Could not kill $pid. You may need to run this script with sudo."
+        else
+          echo "Killed process $pid."
+        fi
+        break
+        ;;
+      [Nn]|'' )
+        echo "Skipped killing PID $pid."
+        break
+        ;;
+      * )
+        echo "Please answer y or n."
+        ;;
+    esac
+  done
+
+  echo
+done
+
+echo "Done."
+

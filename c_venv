@@ -1,0 +1,57 @@
+#!/bin/bash
+# create_venv.sh
+
+# ANSI colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BLUE='\033[1;34m'
+NC='\033[0m' # No Color
+
+# Show Python version and path
+echo -e "${GREEN}🐍 Python info:${NC}"
+python --version && which python
+echo ""
+
+# Check if virtual environment already exists
+if [ -d ".venv" ]; then
+  echo -e "${YELLOW}⚠️  A virtual environment already exists at $(pwd)/.venv${NC}"
+
+  # Check if it's currently activated
+  if [ -n "$VIRTUAL_ENV" ] && [ "$VIRTUAL_ENV" = "$(pwd)/.venv" ]; then
+    echo -e "${GREEN}✅ The virtual environment is already activated.${NC}"
+    echo -e "${CYAN}👉 Current Python:${NC} $(which python)"
+  else
+    echo -e "${BLUE}❓ It is not activated.${NC}"
+    read -p "Do you want to activate it? (yes/no): " choice
+    case "$choice" in
+      yes|y|Y ) 
+        echo -e "${CYAN}👉 To activate, run this command:${NC}"
+        echo "source .venv/bin/activate"
+        ;;
+      * ) 
+        echo -e "${RED}Exiting without activation.${NC}"
+        ;;
+    esac
+  fi
+  exit 0
+fi
+
+# If no venv, ask to create one
+echo -e "${YELLOW}No virtual environment found.${NC}"
+read -p "Do you want to create one here? (yes/no): " choice
+case "$choice" in
+  yes|y|Y ) 
+    echo -e "${GREEN}📦 Creating virtual environment...${NC}"
+    python -m venv .venv
+    echo -e "${GREEN}✅ Virtual environment created at $(pwd)/.venv${NC}"
+    echo -e "${CYAN}👉 To activate, run this command:${NC}"
+    echo "source .venv/bin/activate"
+    ;;
+  * ) 
+    echo -e "${RED}Exiting without creating.${NC}"
+    exit 0
+    ;;
+esac
+

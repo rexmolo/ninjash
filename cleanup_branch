@@ -1,0 +1,19 @@
+#!/bin/bash
+# Automatically clean up local branches whose remote branches are deleted and already merged
+
+# Get default branch name (main or develop)
+MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed "s@^refs/remotes/origin/@@")
+
+echo "Fetching and pruning remote branches..."
+git fetch --prune
+
+echo "Cleaning up merged local branches..."
+git branch --merged "$MAIN_BRANCH" | grep -vE "(^\*|$MAIN_BRANCH)" | while read branch; do
+  if [ -z "$(git ls-remote origin $branch)" ]; then
+    echo "Deleting local branch: $branch"
+    git branch -d "$branch"
+  fi
+done
+
+echo "✅ Cleanup complete."
+
