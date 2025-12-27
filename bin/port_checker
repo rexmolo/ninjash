@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# kill-ports.sh
+### Description: Check and kill processes on occupied ports
+### Usage: ninjash port_checker [PORT...]
+### Example: ninjash port_checker 3000 8080
+
 # macOS: check if given ports are occupied and optionally kill the process using them.
-# Usage:
-#   ./kill-ports.sh 3000 3001 3002
-#   ./kill-ports.sh         # defaults to 3000-3003
+# Defaults to ports 3000-3003 if no arguments provided
 
 set -euo pipefail
 

@@ -1,4 +1,8 @@
 #!/bin/bash
+### Description: Install Jupyter kernel for current project
+### Usage: ninjash jupyter_c_ipy
+### Example: ninjash jupyter_c_ipy
+
 # jupyter_ipykernel.sh
 
 # Check if inside a virtual environment

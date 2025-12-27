@@ -1,4 +1,8 @@
 #!/bin/bash
+### Description: Clean up merged Git branches
+### Usage: ninjash cleanup_branch
+### Example: ninjash cleanup_branch
+
 # Automatically clean up local branches whose remote branches are deleted and already merged
 
 # Get default branch name (main or develop)

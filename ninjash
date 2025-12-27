@@ -1,10 +1,59 @@
 #!/bin/bash
-echo "ninjash:"
-echo
-for f in ~/.local/bin/*; do
-  name=$(basename "$f")
-  # Get the first comment line from each script
-  desc=$(grep -m 1 '^#' "$f" | sed 's/^# *//')
-  printf "%-15s - %s\n" "$name" "$desc"
-done
+# NinjaShell - Developer productivity utilities
+# Main CLI entry point
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BIN_DIR="$SCRIPT_DIR/bin"
+
+# Function to display help
+show_help() {
+  echo "NinjaShell - Developer productivity utilities"
+  echo
+  echo "Usage: ninjash <command> [arguments]"
+  echo
+  echo "Available commands:"
+  echo
+
+  # Scan bin/ directory and parse metadata from each script
+  for script in "$BIN_DIR"/*; do
+    if [ -f "$script" ] && [ -x "$script" ]; then
+      name=$(basename "$script")
+
+      # Extract metadata using grep
+      desc=$(grep -m 1 '^### Description:' "$script" | sed 's/^### Description: *//')
+      usage=$(grep -m 1 '^### Usage:' "$script" | sed 's/^### Usage: *//')
+      example=$(grep -m 1 '^### Example:' "$script" | sed 's/^### Example: *//')
+
+      # Display formatted info
+      echo "  $name"
+      [ -n "$desc" ] && echo "    $desc"
+      [ -n "$usage" ] && echo "    Usage: $usage"
+      [ -n "$example" ] && echo "    Example: $example"
+      echo
+    fi
+  done
+
+  echo "Run 'ninjash <command>' to execute a command"
+}
+
+# Main logic
+command="$1"
+
+# If no command or "help", show help
+if [ -z "$command" ] || [ "$command" = "help" ] || [ "$command" = "--help" ] || [ "$command" = "-h" ]; then
+  show_help
+  exit 0
+fi
+
+# Check if command exists in bin/
+if [ -f "$BIN_DIR/$command" ] && [ -x "$BIN_DIR/$command" ]; then
+  # Execute the command with remaining arguments
+  shift  # Remove the command name from arguments
+  exec "$BIN_DIR/$command" "$@"
+else
+  echo "Error: Unknown command '$command'"
+  echo
+  show_help
+  exit 1
+fi

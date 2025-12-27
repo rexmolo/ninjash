@@ -1,5 +1,7 @@
 #!/bin/bash
-# create_venv.sh
+### Description: Create and activate Python virtual environments
+### Usage: ninjash c_venv
+### Example: ninjash c_venv
 
 # ANSI colors
 RED='\033[0;31m'
@@ -26,11 +28,12 @@ if [ -d ".venv" ]; then
     echo -e "${BLUE}❓ It is not activated.${NC}"
     read -p "Do you want to activate it? (yes/no): " choice
     case "$choice" in
-      yes|y|Y ) 
-        echo -e "${CYAN}👉 To activate, run this command:${NC}"
-        echo "source .venv/bin/activate"
+      yes|y|Y )
+        echo -e "${GREEN}✅ Activating virtual environment...${NC}"
+        echo -e "${YELLOW}(Type 'exit' to return to your original shell)${NC}"
+        exec $SHELL -c "source .venv/bin/activate && exec $SHELL"
         ;;
-      * ) 
+      * )
         echo -e "${RED}Exiting without activation.${NC}"
         ;;
     esac
@@ -42,14 +45,15 @@ fi
 echo -e "${YELLOW}No virtual environment found.${NC}"
 read -p "Do you want to create one here? (yes/no): " choice
 case "$choice" in
-  yes|y|Y ) 
+  yes|y|Y )
     echo -e "${GREEN}📦 Creating virtual environment...${NC}"
     python -m venv .venv
     echo -e "${GREEN}✅ Virtual environment created at $(pwd)/.venv${NC}"
-    echo -e "${CYAN}👉 To activate, run this command:${NC}"
-    echo "source .venv/bin/activate"
+    echo -e "${GREEN}✅ Activating virtual environment...${NC}"
+    echo -e "${YELLOW}(Type 'exit' to return to your original shell)${NC}"
+    exec $SHELL -c "source .venv/bin/activate && exec $SHELL"
     ;;
-  * ) 
+  * )
     echo -e "${RED}Exiting without creating.${NC}"
     exit 0
     ;;
